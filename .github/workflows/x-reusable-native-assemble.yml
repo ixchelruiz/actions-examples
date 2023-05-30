@@ -1,0 +1,80 @@
+name: X Assemble Native Image
+
+on:
+  workflow_call:
+    inputs:
+      project-version:
+        required: true
+        type: string
+      graal-version:
+        default: '22.3.0'
+        required: false
+        type: string
+      graal-java-version:
+        default: '17'
+        required: false
+        type: string
+
+jobs:
+  assemble:
+    name: 'Assemble ${{ matrix.os }}'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Graal
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: ${{ inputs.graal-version }}
+          java-version: ${{ inputs.graal-java-version }}
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+
+      - name: Setup JDKs
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          ./mvnw -ntp -B -q -Pjdks
+
+      - name: Build
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          ./mvnw -ntp -B verify
+
+      - name: Install upx
+        run: brew install upx
+        if: ${{ runner.os == 'macOS' }}
+
+      - name: Assemble
+        uses: jreleaser/release-action@v2
+        with:
+          arguments: assemble --config-file helloworld-java-graalvm/jreleaser.yml
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ inputs.project-version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: jreleaser-assemble-${{ matrix.os }}
+          path: |
+            helloworld-java-graalvm/out/jreleaser/trace.log
+            helloworld-java-graalvm/out/jreleaser/output.properties
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          retention-days: 1
+          path: |
+            helloworld-java-graalvm/out/jreleaser/assemble/helloworld/native-image/*.zip

@@ -1,0 +1,75 @@
+name: Build-5
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  precheck:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.vars.outputs.VERSION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cancel previous run
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: zulu
+          cache: maven
+
+      - name: Version
+        id: vars
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$(echo $VERSION)" >> $GITHUB_OUTPUT
+
+  assemble:
+    needs: [ precheck ]
+    if: endsWith(${{ needs.precheck.outputs.version }}, '-SNAPSHOT')
+    uses: ./.github/workflows/x-reusable-native-assemble.yml
+    with:
+      project-version: ${{ needs.precheck.outputs.version }}
+
+  release:
+    needs: [ precheck, assemble ]
+    if: endsWith(${{ needs.precheck.outputs.version }}, '-SNAPSHOT')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: helloworld-java-graalvm/out/jreleaser/assemble/helloworld/native-image
+
+      - name: Release
+        uses: jreleaser/release-action@v2
+        with:
+          arguments: full-release --git-root-search --config-file helloworld-java-graalvm/jreleaser.yml
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ needs.precheck.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          retention-days: 1
+          name: jreleaser-release
+          path: |
+            helloworld-java-graalvm/out/jreleaser/trace.log
+            helloworld-java-graalvm/out/jreleaser/output.properties

@@ -1,0 +1,245 @@
+name: Build-4
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  precheck:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.vars.outputs.VERSION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cancel previous run
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: zulu
+          cache: maven
+
+      - name: Version
+        id: vars
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$(echo $VERSION)" >> $GITHUB_OUTPUT
+
+  assemble-linux:
+    needs: [ precheck ]
+    if: endsWith(${{ needs.precheck.outputs.version }}, '-SNAPSHOT')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Graal
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: 22.3.0
+          java-version: 17
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+
+      - name: Setup JDKs
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          ./mvnw -ntp -B -q -Pjdks
+
+      - name: Build
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          ./mvnw -ntp -B verify
+
+      - name: Assemble
+        uses: jreleaser/release-action@v2
+        with:
+          arguments: assemble --git-root-search --config-file helloworld-java-graalvm/jreleaser.yml
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ needs.precheck.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_PROJECT_SNAPSHOT_LABEL: snapshot
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: jreleaser-assemble-linux
+          path: |
+            helloworld-java-graalvm/out/jreleaser/trace.log
+            helloworld-java-graalvm/out/jreleaser/output.properties
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          retention-days: 1
+          path: |
+            helloworld-java-graalvm/out/jreleaser/assemble/helloworld/native-image/*.zip
+
+
+  assemble-macos:
+    needs: [ precheck ]
+    if: endsWith(${{ needs.precheck.outputs.version }}, '-SNAPSHOT')
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Graal
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: 22.3.0
+          java-version: 17
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+
+      - name: Setup JDKs
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          ./mvnw -ntp -B -q -Pjdks
+
+      - name: Build
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          ./mvnw -ntp -B verify
+
+      - name: Install upx
+        run: brew install upx
+
+      - name: Assemble
+        uses: jreleaser/release-action@v2
+        with:
+          arguments: assemble --git-root-search --config-file helloworld-java-graalvm/jreleaser.yml
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ needs.precheck.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_PROJECT_SNAPSHOT_LABEL: snapshot
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: jreleaser-assemble-macos
+          path: |
+            helloworld-java-graalvm/out/jreleaser/trace.log
+            helloworld-java-graalvm/out/jreleaser/output.properties
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          retention-days: 1
+          path: |
+            helloworld-java-graalvm/out/jreleaser/assemble/helloworld/native-image/*.zip
+
+
+  assemble-windows:
+    needs: [ precheck ]
+    if: endsWith(${{ needs.precheck.outputs.version }}, '-SNAPSHOT')
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Graal
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: 22.3.0
+          java-version: 17
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+
+      - name: Setup JDKs
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          ./mvnw -ntp -B -q -Pjdks
+
+      - name: Build
+        shell: bash
+        run: |
+          cd helloworld-java-graalvm
+          ./mvnw -ntp -B verify
+
+      - name: Assemble
+        uses: jreleaser/release-action@v2
+        with:
+          arguments: assemble --git-root-search --config-file helloworld-java-graalvm/jreleaser.yml
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ needs.precheck.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_PROJECT_SNAPSHOT_LABEL: snapshot
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: jreleaser-assemble-windows
+          path: |
+            helloworld-java-graalvm/out/jreleaser/trace.log
+            helloworld-java-graalvm/out/jreleaser/output.properties
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          retention-days: 1
+          path: |
+            helloworld-java-graalvm/out/jreleaser/assemble/helloworld/native-image/*.zip
+
+  release:
+    needs: [ precheck, assemble-linux, assemble-macos, assemble-windows ]
+    if: endsWith(${{ needs.precheck.outputs.version }}, '-SNAPSHOT')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: helloworld-java-graalvm/out/jreleaser/assemble/helloworld/native-image
+
+      - name: Release
+        uses: jreleaser/release-action@v2
+        with:
+          arguments: full-release --git-root-search --config-file helloworld-java-graalvm/jreleaser.yml
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ needs.precheck.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_PROJECT_SNAPSHOT_LABEL: snapshot
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          retention-days: 1
+          name: jreleaser-release
+          path: |
+            helloworld-java-graalvm/out/jreleaser/trace.log
+            helloworld-java-graalvm/out/jreleaser/output.properties

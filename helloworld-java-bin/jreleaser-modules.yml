@@ -1,0 +1,37 @@
+project:
+  name: helloworld
+  description: HelloWorld in Java
+  longDescription: HelloWorld in Java
+  links:
+    homepage: https://github.com/jreleaser/helloworld-java-bin
+  authors:
+    - Andres Almiray
+  license: APACHE-2.0
+  inceptionYear: 2023
+  stereotype: cli
+  java:
+    version: 11
+    groupId: org.jreleaser.examples
+    artifactId: helloworld
+    mainClass: org.jreleaser.examples.HelloWorld
+    mainModule: org.jreleaser.examples
+
+release:
+  github:
+    overwrite: true
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+
+assemble:
+  javaArchive:
+    helloworld:
+      active: ALWAYS
+      formats: [ ZIP ]
+      fileSets:
+        - input: '.'
+          includes: [ 'LICENSE' ]
+      mainJar:
+        path: target/{{distributionName}}-{{projectVersion}}.jar

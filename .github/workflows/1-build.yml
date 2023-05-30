@@ -1,0 +1,24 @@
+name: Build-1
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: zulu
+          cache: maven
+
+      - name: Build
+        run: |
+          cd helloworld-java-bin
+          ./mvnw -ntp -B --file pom.xml verify

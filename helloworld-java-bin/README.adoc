@@ -1,0 +1,21 @@
+= Helloworld in Java
+
+This repository shows how to configure link:https://github.com/features/actions[GitHub Actions] and link:https://jreleaser.org/[JReleaser] to:
+
+ * compile a helloworld app
+ * assemble a zip distributions with JReleaser
+ * create rolling early-access releases with JReleaser on every push to `main` branch
+
+There are two modes for packaging this application: classpath & modulepath.
+
+*classpath*
+
+ 1. `./mvnw verify`
+ 2. `jreleaser assemble`
+
+*modulepath*
+
+ 1. `./mvnw verify`
+ 2. `jreleaser assemble --config-file jreleaser-modules.yml`
+
+In both cases the assembled archive is placed at `out/jreleaser/assemble/helloworld/java-archive`.
