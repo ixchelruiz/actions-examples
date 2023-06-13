@@ -1,0 +1,22 @@
+name: Build-extra-1-environment
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set the value
+      id: step_one
+      run: |
+        echo "action_state=yellow" >> "$GITHUB_ENV"
+    - name: Use the value
+      id: step_two
+      run: |
+        echo "${{ env.action_state }}" # This will output 'yellow'
+    - name : Generate step summary
+      id: step_three
+      run: | 
+        echo "### Hello world! :rocket:" >> $GITHUB_STEP_SUMMARY
