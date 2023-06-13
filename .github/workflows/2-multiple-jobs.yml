@@ -7,6 +7,7 @@ on:
 jobs:
   precheck:
     runs-on: ubuntu-latest
+    if: ${{ vars.ALLOW_TO_RUN == 'true' }}
     outputs:
       version: ${{ steps.vars.outputs.VERSION }}
     steps:
@@ -30,7 +31,7 @@ jobs:
 
   release:
     needs: [ precheck ]
-    if: endsWith(${{ needs.precheck.outputs.version }}, '-SNAPSHOT')
+    if: ${{ endsWith('${{ needs.precheck.outputs.version }}', '-SNAPSHOT') && vars.ALLOW_TO_RUN == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

@@ -1,4 +1,4 @@
-name: workflow_call__inputs
+name:  Extra-2-Inputs
 
 on:
   workflow_call:

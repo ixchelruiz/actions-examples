@@ -1,0 +1,50 @@
+name:  Extra-4-Prerequisite 
+
+on:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  job01:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Job01 
+        id: step_job01
+        run: |
+          echo Job01 Hello, world!
+          echo "##  Prerequisite :rocket: " >> $GITHUB_STEP_SUMMARY
+          echo "Job01 - OK " >> $GITHUB_STEP_SUMMARY
+  job02:
+    runs-on: ubuntu-latest
+    needs: job01
+    steps:
+      - name: Job02 - step01 will fail
+        id: step01_job02 
+        run: |
+          echo Job02 depends on Job01 OK 
+          echo "Job02 - depends on Job01 OK but step01 will fail" >> $GITHUB_STEP_SUMMARY
+          exit 1
+      - name: Job02 - step02 has failed
+        if: ${{ failure() && steps.step01_job02.conclusion == 'failure' }} 
+        run: |
+          echo Job02 - step02 has failed
+          echo "Job02 - step02 was triggered because step01 has failed" >> $GITHUB_STEP_SUMMARY
+  job03:
+    runs-on: ubuntu-latest
+    needs: [job01,job02]
+    steps:
+      - name: Job03 - depends on Job01 OK and Job02 OK
+        id : step_job03 
+        run: |
+          echo Job03 depends on Job01 OK and Job02 OK  
+          echo "Job03 - depends on Job01 OK and Job02 OK" >> $GITHUB_STEP_SUMMARY
+  job04:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [job01,job02]
+    steps:
+      - name: Job04 - depends on Job01 and Job02 regardless of the status
+        id : step_job04 
+        run: |
+          echo Job04 depends on Job01 and Job02 regardless of the status  
+          echo "Job04 - depends on Job01 and Job02 regardless of the status" >> $GITHUB_STEP_SUMMARY

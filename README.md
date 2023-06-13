@@ -44,13 +44,13 @@
 
 This repository contains examples for the following use cases
 
-- [ ] A basic GH worflow (build a [![maven][maven-shield]][maven-url] project)
-- [ ] Show steps inputs/outputs
-- [ ] Show dependencies between jobs
-- [ ] Configure a job matrix for [![runners][runners-shield]][runners-url]
-- [ ] Demonstrate secrets and variables
-- [ ] Demonstrate reusable workflows
-- [ ] Build a custom [![Github Actions][githubactions-shield]][githubactions-url] with composite (Java based)
+- [x] A basic GH worflow (build a [![maven][maven-shield]][maven-url] project)
+- [x] Show steps inputs/outputs
+- [x] Show dependencies between jobs
+- [x] Configure a job matrix for [![runners][runners-shield]][runners-url]
+- [x] Demonstrate secrets and variables
+- [x] Demonstrate reusable workflows
+- [x] Build a custom [![Github Actions][githubactions-shield]][githubactions-url] with composite (Java based)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
