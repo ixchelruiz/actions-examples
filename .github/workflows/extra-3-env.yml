@@ -26,3 +26,6 @@ jobs:
       id: step_three
       run: | 
         echo "### Hello world! :rocket:" >> $GITHUB_STEP_SUMMARY
+        echo "#### Enviroment! :notebook_with_decorative_cover:" >> $GITHUB_STEP_SUMMARY
+        echo "${{ format('{0}/{1}.{2}', env.myHexNumber, env.myString, env.myStringInBraces) }}" >> $GITHUB_STEP_SUMMARY
+        
