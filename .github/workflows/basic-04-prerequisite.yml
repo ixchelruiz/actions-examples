@@ -1,4 +1,4 @@
-name:  Extra-4-Prerequisite 
+name:  Basic-Prerequisite 
 
 on:
   workflow_dispatch:

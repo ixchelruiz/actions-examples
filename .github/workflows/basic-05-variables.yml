@@ -1,4 +1,4 @@
-name: Extra-5-Variables
+name: Basic-Variables
 on:
   workflow_dispatch:
 env:

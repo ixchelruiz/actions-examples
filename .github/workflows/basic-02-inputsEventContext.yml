@@ -1,4 +1,4 @@
-name:  Extra-2-Inputs
+name:  Basic-Inputs & Event Context
 
 on:
   workflow_call:
