@@ -19,9 +19,9 @@ on:
         description: 'Test scenario tags'
         required: true
         type: string
-      codespace:
+      environment:
         description: 'Environment to run tests against'
-        type: codespace
+        type: environment
         required: true
 
 jobs:
