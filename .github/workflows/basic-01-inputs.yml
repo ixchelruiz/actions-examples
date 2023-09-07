@@ -1,4 +1,4 @@
-name: Basic-Inputs
+name: Basic-01-Inputs
 on:
   workflow_dispatch:
     inputs:

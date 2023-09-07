@@ -1,4 +1,4 @@
-name: Basic-Environment
+name: Basic-03-Environment
 on:
   workflow_dispatch:
 env:

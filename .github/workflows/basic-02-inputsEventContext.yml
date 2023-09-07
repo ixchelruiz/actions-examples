@@ -1,4 +1,4 @@
-name:  Basic-Inputs & Event Context
+name:  Basic-02-Inputs & Event Context
 
 on:
   workflow_call:
